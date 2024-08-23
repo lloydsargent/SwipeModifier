@@ -29,6 +29,26 @@ struct ContentView: View {
                 default:
                     print("nothing")
             }
+            switch event.compass {
+                case .north:
+                    print("north")
+                case .south:
+                    print("south")
+                case .east:
+                    print("east")
+                case .west:
+                    print("west")
+                case .southEast:
+                    print("southeast")
+                case .southWest:
+                    print("southwest")
+                case .northWest:
+                    print("northwest")
+                case .northEast:
+                    print("northeast")
+                case .none:
+                    print("none")
+            }
         }
     }
     

@@ -26,13 +26,13 @@ extension View {
     ///        yourView
     ///            .onSwipe{ event in
     ///                    switch event.direction {
-    ///                        case .down:
+    ///                        case .south:
     ///                            print("### down")
-    ///                        case .up:
+    ///                        case .north:
     ///                            print("### up")
-    ///                        case .left:
+    ///                        case .west:
     ///                            print("### left")
-    ///                        case .right:
+    ///                        case .east:
     ///                            print("### right")
     ///                        default:
     ///                            print("### everythingelse")
@@ -73,7 +73,7 @@ extension View {
 ///    know things like directionp.
 ///
 
-class SwipeEvent {
+public class SwipeEvent {
     enum SwipeDirection {
         case none, up, down, left, right
     }
@@ -82,11 +82,15 @@ class SwipeEvent {
         case none, shift, control, option, command
     }
     
-    var direction: SwipeDirection = .none
+    enum Compass {
+        case none, north, south, west, east, northWest, southWest, northEast, southEast
+    }
+    
+    var nsevent: NSEvent! = nil
+    
     var directionValue: CGFloat = .zero
     var phase: NSEvent.Phase = .mayBegin
-    var modifier: Modifier = .none
-
+    
     var deltaX: CGFloat = .zero
     var deltaY: CGFloat = .zero
     var location: CGPoint = .zero
@@ -95,6 +99,122 @@ class SwipeEvent {
     var scrollingDeltaX: CGFloat = .zero
     var scrollingDeltaY: CGFloat = .zero
     var modifierFlags: NSEvent.ModifierFlags = .shift
+    
+
+
+    ///
+    ///    Initialize the class.
+    ///
+    ///    Initializes the class with the NSEvent.
+    ///
+    ///    - Parameters:
+    ///        - event: The event used by the modifier (NSEvent)
+    ///    #### ❕Attention
+    ///    Guards against the event window being nil. This is a bit of a hack as events can occur that
+    ///    are not attached to a view. Since we ONLY want events that are attached to views, these
+    ///    events are filtered out.
+    ///
+
+    init(event: NSEvent) {
+        nsevent = event
+        guard nsevent.window != nil else { return }
+
+        //----- copy the nsevent data
+        scrollingDeltaX = nsevent.scrollingDeltaX
+        scrollingDeltaY = nsevent.scrollingDeltaY
+        phase = nsevent.phase
+        deltaX = nsevent.deltaX
+        deltaY = nsevent.deltaY
+        scrollingDeltaX = nsevent.scrollingDeltaX
+        scrollingDeltaY = nsevent.scrollingDeltaY
+        location = nsevent.locationInWindow
+        mouseLocation = nsevent.locationInWindow
+        location = nsevent.cgEvent!.location
+        timestamp = nsevent.timestamp
+    }
+
+
+
+    ///
+    ///    This is an oversimplified version of the scrollWheel.
+    ///
+    ///    Normally a simple version of the scrollWheel is not a problem. This will satisfy most use
+    ///    cases.
+    ///
+    ///    - returns: <#ReturnDescription#>
+    ///    #### ❕Attention
+    ///    If the wheel direction is at an angle, for example left and up, it will report `.left` and
+    ///    the same with right and up, it will respond with `.right`. This really isn't normally a
+    ///    problem unless you need more degrees of movement. In which case, you should go with the
+    ///    `compass`.
+    ///    #### ⓘ Interest
+    ///    Although it seems squished, the if statements have been reduced to a single line that makes
+    ///    the code a little more readable.
+
+    var direction: SwipeDirection {
+        if nsevent.scrollingDeltaX > 0.0 { return .left  }
+        if nsevent.scrollingDeltaX < 0.0 { return .right }
+        if nsevent.scrollingDeltaY > 0.0 { return .up    }
+        if nsevent.scrollingDeltaY < 0.0 { return .down  }
+        
+        return .none
+    }
+
+
+
+    ///
+    ///    The scrollWheel as a compass
+    ///
+    ///    This has more granularity than a simple up/down/left/right with it broken down as
+    ///    `north/south/east/west/northEast/northWest/southEast/southWest` allowing the user a greater
+    ///    more flexibility.
+    ///
+    ///    - returns: swipe as a compass of directions (Compass)
+    ///    #### ⓘ Interest
+    ///    By returning a compass, the user gets more flexibilty
+    ///
+
+    var compass: Compass {
+        var directionEastWest: Compass = .none
+        var directionNorthSouth: Compass = .none
+        
+        if nsevent.scrollingDeltaX > 0.0 { directionEastWest   = .east  }
+        if nsevent.scrollingDeltaX < 0.0 { directionEastWest   = .west  }
+        if nsevent.scrollingDeltaY > 0.0 { directionNorthSouth = .north }
+        if nsevent.scrollingDeltaY < 0.0 { directionNorthSouth = .south }
+        
+        if nsevent.scrollingDeltaY == 0 { return directionEastWest   }
+        if nsevent.scrollingDeltaX == 0 { return directionNorthSouth }
+    
+        if directionNorthSouth == .north && directionEastWest == .east { return .northEast }
+        if directionNorthSouth == .south && directionEastWest == .east { return .southEast }
+        if directionNorthSouth == .north && directionEastWest == .west { return .northWest }
+        if directionNorthSouth == .south && directionEastWest == .west { return .southWest }
+        
+        return .none
+    }
+
+    
+    
+    ///
+    ///    Simplifies the modifier.
+    ///
+    ///    Seldom do people use a combination of modifiers with the scrollWheel. This simplifies the
+    ///    code.
+    ///
+    ///    - returns: the modifier key (Modifier)
+    ///    #### ⓘ Interest
+    ///    While the contains is more flexibily, it makes the code look messy.
+    ///
+
+    var modifier: Modifier {
+        if nsevent.modifierFlags.contains(.shift)   { return .shift   }
+        if nsevent.modifierFlags.contains(.control) { return .control }
+        if nsevent.modifierFlags.contains(.option ) { return .option  }
+        if nsevent.modifierFlags.contains(.command) { return .command }
+        
+        return  .none
+    }
 }
 
 
@@ -107,14 +227,14 @@ class SwipeEvent {
 ///    - Parameters:
 ///        - : action contains the closure
 ///
-///    - returns: <#ReturnDescription#>
+///    - returns: The view (some View)
 ///    #### ❕Attention
 ///    This uses the `.onContinousHover` modifier to determine if we are in the view.
 ///    #### ⚠️ Warning
 ///    Do not remove the `.onDisappear` or you will leak memory.
 ///
 
-struct OnSwipe: ViewModifier {
+private struct OnSwipe: ViewModifier {
     //----- our action closure
     var action: (SwipeEvent) -> Void
     
@@ -122,7 +242,7 @@ struct OnSwipe: ViewModifier {
     @State private var insideViewWindow = false
     
     //----- swipe event
-    @State private var swipeEvent = SwipeEvent()
+    @State private var swipeEvent = SwipeEvent(event: NSEvent())
     
     //----- secret sauce to prevent memory leaks DO NOT REMOVE
     @State private var monitor: Any? = nil
@@ -145,7 +265,7 @@ struct OnSwipe: ViewModifier {
                 monitor = NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) { event in
                     
                     if insideViewWindow {
-                        let scrollEvent = swipeDirection(event)
+                        let scrollEvent = SwipeEvent(event: event)
                         action(scrollEvent)
                     }
                     
@@ -159,67 +279,4 @@ struct OnSwipe: ViewModifier {
             }
     }
 }
-
-
-
-///
-///    Used to determine swipe direction.
-///
-///    This copies information from the NSEvent to the SwipeEvent class instance.
-///
-///    - Parameters:
-///        - nsevent: the event (NSEvent)
-///
-///    - returns: Infomation regarding the swipe event (SwipeEvent)
-///
-
-func swipeDirection(_ nsevent: NSEvent) -> SwipeEvent {
-    let swipeEvent = SwipeEvent()
-    
-    if nsevent.scrollingDeltaX > 0.0 {
-        swipeEvent.direction = .left
-        swipeEvent.directionValue = abs(nsevent.scrollingDeltaX)
-    }
-    if nsevent.scrollingDeltaX < 0.0 {
-        swipeEvent.direction = .right
-        swipeEvent.directionValue = abs(nsevent.scrollingDeltaX)
-    }
-    if nsevent.scrollingDeltaY > 0.0 {
-        swipeEvent.direction = .up
-        swipeEvent.directionValue = abs(nsevent.scrollingDeltaY)
-    }
-    if nsevent.scrollingDeltaY < 0.0 {
-        swipeEvent.direction = .down
-        swipeEvent.directionValue = abs(nsevent.scrollingDeltaY)
-    }
-    
-    switch nsevent.modifierFlags {
-        case let modifier where modifier.contains(.shift):
-            swipeEvent.modifier = .shift
-        case let modifier where modifier.contains(.control):
-            swipeEvent.modifier = .control
-        case let modifier where modifier.contains(.option):
-            swipeEvent.modifier = .option
-        case let modifier where modifier.contains(.command):
-            swipeEvent.modifier = .command
-        default:
-            swipeEvent.modifier = .none
-    }
-    
-    //----- copy the nsevent data
-    swipeEvent.scrollingDeltaX = nsevent.scrollingDeltaX
-    swipeEvent.scrollingDeltaY = nsevent.scrollingDeltaY
-    swipeEvent.phase = nsevent.phase
-    swipeEvent.deltaX = nsevent.deltaX
-    swipeEvent.deltaY = nsevent.deltaY
-    swipeEvent.scrollingDeltaX = nsevent.scrollingDeltaX
-    swipeEvent.scrollingDeltaY = nsevent.scrollingDeltaY
-    swipeEvent.location = nsevent.locationInWindow
-    swipeEvent.mouseLocation = nsevent.locationInWindow
-    swipeEvent.location = nsevent.cgEvent!.location
-    swipeEvent.timestamp = nsevent.timestamp
-
-    return swipeEvent
-}
-
 
