@@ -39,6 +39,35 @@ Easy peasy, right?
 
 Peasy? Yes. Easy? Not so much. The amount of verbiage and videos on how to make a **simple** modifier exist (how to change text to red) but nothing like the above. In the end I looked at Apple's header and went 💡 Oh! That's how you do it!
 
+### But wait, there's more
+
+Let's say you want to move left and up or down and right? Hard to do with just up and down, right? I've 
+got you covered with the new compass directions! This makes things much simpler so you can write the
+code in a way that makes sense! 
+
+    .onSwipe { event in
+        switch event.compass {
+            case .north:
+                print("north")
+            case .south:
+                print("south")
+            case .east:
+                print("east")
+            case .west:
+                print("west")
+            case .southEast:
+                print("southeast")
+            case .southWest:
+                print("southwest")
+            case .northWest:
+                print("northwest")
+            case .northEast:
+                print("northeast")
+            case .none:
+                print("none")
+        }
+    }
+
 ### Just give me the code!
 
 Okay, okay, you will find the code with an example of how to use the modifier. The modifier is named onSwipe (I know, it took me a while to come up with the name). Feel free to name it whatever you want (but please don't delete the copyright notice... it did take me a few days to get it right).
