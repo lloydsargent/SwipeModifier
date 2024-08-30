@@ -49,11 +49,11 @@ extension View {
     ///
     ///
     ///    - Parameters:
-    ///        - action: closure to call with the SwipeEvent as the parameter
-    ///        - returns: ContentView (some View)
-    ///    #### ⚠️ Warning
+    ///        - action: closure to call with the SwipeEvent as the parameter - @escaping(SwipeEvent) -> Void
+    ///        - returns: ContentView - some View
+    ///    #### ⚠︎ Warning
     ///    Has not been throughly tested with other modifiers..
-    ///    #### 🚫 Do Not Use
+    ///    ####  ⃠ Do Not Use
     ///    Will not work with iOS. This is a macOS solution. Use gestures with iOS.
     ///
 
@@ -108,8 +108,8 @@ public class SwipeEvent {
     ///    Initializes the class with the NSEvent.
     ///
     ///    - Parameters:
-    ///        - event: The event used by the modifier (NSEvent)
-    ///    #### ❕Attention
+    ///        - event: The event used by the modifier - NSEvent
+    ///    #### ！Attention
     ///    Guards against the event window being nil. This is a bit of a hack as events can occur that
     ///    are not attached to a view. Since we ONLY want events that are attached to views, these
     ///    events are filtered out.
@@ -141,15 +141,15 @@ public class SwipeEvent {
     ///    Normally a simple version of the scrollWheel is not a problem. This will satisfy most use
     ///    cases.
     ///
-    ///    - returns: <#ReturnDescription#>
-    ///    #### ❕Attention
+    ///    - returns: Swipe direction - enum Compass
+    ///    #### ⓘ Interest
+    ///    Although it seems squished, the if statements have been reduced to a single line that makes
+    ///    the code a little more readable.
+    ///    #### ！Attention
     ///    If the wheel direction is at an angle, for example left and up, it will report `.left` and
     ///    the same with right and up, it will respond with `.right`. This really isn't normally a
     ///    problem unless you need more degrees of movement. In which case, you should go with the
     ///    `compass`.
-    ///    #### ⓘ Interest
-    ///    Although it seems squished, the if statements have been reduced to a single line that makes
-    ///    the code a little more readable.
 
     var direction: SwipeDirection {
         if nsevent.scrollingDeltaX > 0.0 { return .left  }
@@ -169,7 +169,7 @@ public class SwipeEvent {
     ///    `north/south/east/west/northEast/northWest/southEast/southWest` allowing the user a greater
     ///    more flexibility.
     ///
-    ///    - returns: swipe as a compass of directions (Compass)
+    ///    - returns: swipe as a compass of directions - enum Compass
     ///    #### ⓘ Interest
     ///    By returning a compass, the user gets more flexibilty
     ///
@@ -202,7 +202,7 @@ public class SwipeEvent {
     ///    Seldom do people use a combination of modifiers with the scrollWheel. This simplifies the
     ///    code.
     ///
-    ///    - returns: the modifier key (Modifier)
+    ///    - returns: the modifier key - Modifier
     ///    #### ⓘ Interest
     ///    While the contains is more flexibily, it makes the code look messy.
     ///
@@ -228,9 +228,9 @@ public class SwipeEvent {
 ///        - : action contains the closure
 ///
 ///    - returns: The view (some View)
-///    #### ❕Attention
+///    #### ！Attention
 ///    This uses the `.onContinousHover` modifier to determine if we are in the view.
-///    #### ⚠️ Warning
+///    #### ⚠︎ Warning
 ///    Do not remove the `.onDisappear` or you will leak memory.
 ///
 
